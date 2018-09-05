@@ -306,7 +306,8 @@ void Miner::parse(char *line, size_t len)
 
     if (line[0] != '{') {
         LOG_INFO("close connection, len < 32 %s", line);
-        return shutdown(true);
+        // return shutdown(true);
+        return;
     }
 
     rapidjson::Document doc;
