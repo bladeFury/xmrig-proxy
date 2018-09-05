@@ -305,17 +305,20 @@ void Miner::parse(char *line, size_t len)
     LOG_DEBUG("[%s] received (%d bytes): \"%s\"", m_ip, len, line);
 
     if (len < 32 || line[0] != '{') {
+        LOG_INFO("close connection, len < 32");
         return shutdown(true);
     }
 
     rapidjson::Document doc;
     if (doc.ParseInsitu(line).HasParseError()) {
         LOG_ERR("[%s] JSON decode failed: \"%s\"", m_ip, rapidjson::GetParseError_En(doc.GetParseError()));
+        LOG_INFO("close connection, JSON decode failed");
 
         return shutdown(true);
     }
 
     if (!doc.IsObject()) {
+        LOG_INFO("close connection, JSON decode not object");
         return shutdown(true);
     }
 
@@ -323,6 +326,7 @@ void Miner::parse(char *line, size_t len)
     if (id.IsInt64() && parseRequest(id.GetInt64(), doc["method"].GetString(), doc["params"])) {
         return;
     }
+    LOG_INFO("close connection, parse error");
 
     shutdown(true);
 }
@@ -340,6 +344,8 @@ void Miner::send(int size)
     const int rc = uv_try_write(reinterpret_cast<uv_stream_t*>(&m_socket), &buf, 1);
 
     if (rc < 0) {
+        LOG_INFO("close connection, write failed");
+        
         return shutdown(true);
     }
 }
@@ -412,6 +418,11 @@ void Miner::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
     }
 
     if (nread < 0 || (size_t) nread > (sizeof(m_buf) - 8 - miner->m_recvBufPos)) {
+        if(nread == UV_EOF) {
+            LOG_INFO("close connection, peer closed");
+        } else {
+            LOG_INFO("close connection, read error");
+        }
         return miner->shutdown(nread != UV_EOF);;
     }
 
@@ -453,6 +464,7 @@ void Miner::onTimeout(uv_timer_t *handle)
     }
 
     miner->m_recvBuf.base[sizeof(m_buf) - 1] = '\0';
+        LOG_INFO("close connection, timeout");
 
     miner->shutdown(true);
 }
