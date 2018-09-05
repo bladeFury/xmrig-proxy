@@ -305,7 +305,7 @@ void Miner::parse(char *line, size_t len)
     LOG_DEBUG("[%s] received (%d bytes): \"%s\"", m_ip, len, line);
 
     if (line[0] != '{') {
-        LOG_INFO("close connection, len < 32");
+        LOG_INFO("close connection, len < 32 %s", line);
         return shutdown(true);
     }
 
@@ -327,9 +327,9 @@ void Miner::parse(char *line, size_t len)
         return;
     }
     if (id.IsInt64()) {
-        LOG_INFO("close connection, parse error");
+        LOG_INFO("close connection, parse error %s",line);
     } else {
-        LOG_INFO("close connection, parse error int64");
+        LOG_INFO("close connection, parse error int64 %s", line);
     }
 
     shutdown(true);
