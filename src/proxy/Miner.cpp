@@ -280,7 +280,12 @@ bool Miner::parseRequest(int64_t id, const char *method, const rapidjson::Value 
             replyWithError(id, event->message());
         }
 
-        return event->error() != Error::InvalidNonce;
+        if (event->error() != Error::InvalidNonce) {
+            return true;
+        } else {
+            LOG_INFO("close connection, parse error, event error %s, %s", params["job_id"], params["nonce"]);
+            return false;
+        }
     }
 
     if (strcmp(method, "keepalived") == 0) {
@@ -462,7 +467,7 @@ void Miner::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
         return;
     }
 
-    memcpy(miner->m_recvBuf.base, start, remaining);
+    memmove(miner->m_recvBuf.base, start, remaining);
     miner->m_recvBufPos = remaining;
 }
 
