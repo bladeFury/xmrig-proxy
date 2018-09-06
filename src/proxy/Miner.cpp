@@ -283,7 +283,7 @@ bool Miner::parseRequest(int64_t id, const char *method, const rapidjson::Value 
         if (event->error() != Error::InvalidNonce) {
             return true;
         } else {
-            LOG_INFO("close connection, parse error, event error %s, %s", params["job_id"], params["nonce"]);
+            LOG_INFO("close connection, parse error, event error %s, %s", params["job_id"].GetString(), params["nonce"].GetString());
             return false;
         }
     }
