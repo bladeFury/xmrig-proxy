@@ -265,9 +265,11 @@ bool Miner::parseRequest(int64_t id, const char *method, const rapidjson::Value 
         SubmitEvent *event = SubmitEvent::create(this, id, params["job_id"].GetString(), params["nonce"].GetString(), params["result"].GetString(), algorithm);
 
         if (!event->request.isValid() || event->request.actualDiff() < diff()) {
+            LOG_INFO("close connection, parse error, request not valid %d", event->request.actualDiff());
             event->reject(Error::LowDifficulty);
         }
         else if (m_nicehash && !event->request.isCompatible(m_fixedByte)) {
+            LOG_INFO("close connection, parse error, not nicehash comp %d", m_fixedByte);
             event->reject(Error::InvalidNonce);
         }
 
@@ -277,6 +279,7 @@ bool Miner::parseRequest(int64_t id, const char *method, const rapidjson::Value 
         }
 
         if (!event->start()) {
+            LOG_INFO("close connection, parse error, start error %s", event->message());
             replyWithError(id, event->message());
         }
 
@@ -316,9 +319,13 @@ void Miner::parse(char *line, size_t len)
     LOG_DEBUG("[%s] received (%d bytes): \"%s\"", m_ip, len, line);
 
     if (line[0] != '{') {
-        LOG_INFO("close connection, len < 32 %s", line);
+        LOG_INFO("close connection, not json %s", line);
         // return shutdown(true);
         return;
+    }
+    
+    if (len < 32) {
+        LOG_INFO("close connection, < 32");
     }
 
     rapidjson::Document doc;
@@ -345,6 +352,7 @@ void Miner::parse(char *line, size_t len)
     }
 
     // shutdown(true);
+    LOG_INFO("close connection, parse error\n this is a line break");
 }
 
 
