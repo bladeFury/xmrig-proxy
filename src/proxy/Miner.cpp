@@ -206,7 +206,12 @@ void Miner::success(int64_t id, const char *status)
 
 bool Miner::parseRequest(int64_t id, const char *method, const rapidjson::Value &params)
 {
-    if (!method || !params.IsObject()) {
+    if (!method) {
+        LOG_INFO("close connection, parse error, method is null");
+        return false;
+    }
+    if (!params.IsObject()) {
+        LOG_INFO("close connection, parse error, not object");
         return false;
     }
 
@@ -229,11 +234,12 @@ bool Miner::parseRequest(int64_t id, const char *method, const rapidjson::Value 
             LoginEvent::create(this, id, params["login"].GetString(), params["pass"].GetString(), params["agent"].GetString(), params["rigid"].GetString(), algorithms)->start();
             return true;
         }
-
+        LOG_INFO("close connection, parse error, wrong status");
         return false;
     }
 
     if (m_state == WaitReadyState) {
+        LOG_INFO("close connection, parse error, ready state");
         return false;
     }
 
@@ -333,7 +339,7 @@ void Miner::parse(char *line, size_t len)
         LOG_INFO("close connection, parse error int64 %s", line);
     }
 
-    shutdown(true);
+    // shutdown(true);
 }
 
 
