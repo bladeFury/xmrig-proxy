@@ -386,7 +386,7 @@ void Miner::shutdown(bool had_error)
     if (m_state == ClosingState) {
         return;
     }
-
+    LOG_INFO("close connection, set state to closing");
     setState(ClosingState);
     uv_read_stop(reinterpret_cast<uv_stream_t*>(&m_socket));
 
